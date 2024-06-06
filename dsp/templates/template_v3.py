@@ -44,6 +44,7 @@ class Template(TemplateV2):
                 input_variable=key,
                 output_variable=key,
                 separator=separator,
+                is_image=bool(value.is_image),
             )
             self.fields.append(field)
 

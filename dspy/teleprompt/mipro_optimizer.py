@@ -131,6 +131,8 @@ class DatasetDescriptorWithPriorObservations(dspy.Signature):
         desc="Somethings that holds true for most or all of the data you observed or COMPLETE if you have nothing to add",
     )
 
+def _render_examples(examples: list[dsp.Example]) -> str:
+    return "\n".join([example.render_observation() for example in examples])
 
 class MIPRO(Teleprompter):
     def __init__(
@@ -174,7 +176,8 @@ class MIPRO(Teleprompter):
 
     def _observe_data(self, trainset, max_iterations=10):
         upper_lim = min(len(trainset), self.view_data_batch_size)
-        observation = dspy.Predict(DatasetDescriptor, n=1, temperature=1.0)(examples=(trainset[0:upper_lim].__repr__()))
+        observation = dspy.Predict(DatasetDescriptor, n=1, temperature=1.0)(
+                    examples=_render_examples(trainset[0:upper_lim]))
         observations = observation["observations"]
 
         skips = 0
@@ -183,7 +186,7 @@ class MIPRO(Teleprompter):
             upper_lim = min(len(trainset), b + self.view_data_batch_size)
             output = dspy.Predict(DatasetDescriptorWithPriorObservations, n=1, temperature=1.0)(
                 prior_observations=observations,
-                examples=(trainset[b:upper_lim].__repr__()),
+                examples=_render_examples(trainset[b:upper_lim]),
             )
             iterations += 1
             if len(output["observations"]) >= 8 and output["observations"][:8].upper() == "COMPLETE":

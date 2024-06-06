@@ -109,6 +109,14 @@ def _generate(template: Template, **kwargs) -> Callable:
 
         # Generate and extract the fields.
         prompt = template(example)
+
+        # For image data, we need to embed that in the kwargs to be passed
+        # to the generator and the LM.
+        for field in template.fields:
+            if field.is_image:
+                kwargs["img_data"] = example[field.input_variable]
+                break
+
         completions: list[dict[str, Any]] = generator(prompt, **kwargs)
         completions: list[Example] = [template.extract(example, p) for p in completions]
 

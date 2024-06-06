@@ -104,3 +104,10 @@ class Example:
     
     def toDict(self):
         return self._store.copy()
+
+    def render_observation(self) -> str:
+        """Given an example, render the observation for used in Optimizer.
+
+        This can be overridden in case of long inputs (e.g. images).
+        """
+        return repr(self)

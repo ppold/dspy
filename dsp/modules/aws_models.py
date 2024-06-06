@@ -214,6 +214,23 @@ class AWSAnthropic(AWSModel):
             self.kwargs[k] = v
 
     def _create_body(self, prompt: str, **kwargs) -> tuple[int, dict[str, str | float]]:
+        if "img_data" in kwargs:
+            content = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": image["media_type"],
+                        "data": image["data"]
+                    },
+                }
+                for image in kwargs.pop("img_data")
+            ]
+        else:
+            content = []
+
+        content.append({"type": "text", "text": prompt})
+
         base_args: dict[str, Any] = self.kwargs
         for k, v in kwargs.items():
             base_args[k] = v
@@ -231,12 +248,7 @@ class AWSAnthropic(AWSModel):
         query_args["messages"] = [
             {
                 "role": "user",
-                "content": [
-                    {
-                        "type": "text",
-                        "text": prompt,
-                    },
-                ],
+                "content": content,
             },
         ]
         return (n, query_args)
